@@ -10,66 +10,69 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { MealProvider, useMeals } from '@/context/MealContext';
+import { useMeals } from '@/context/MealContext';
 import { StarRating } from '@/components/StarRating';
 import { Check } from 'lucide-react-native';
 
-function AddMealContent() {
-  const { addMeal } = useMeals();
+export default function AddMealScreen() {
+  const { addMeal, loading } = useMeals();
   const [formData, setFormData] = useState({
-    restaurantName: '',
-    mealName: '',
+    restaurant_name: '',
+    meal_name: '',
     description: '',
     rating: 5,
     price: '',
     cuisine: '',
     location: '',
-    imageUrl: '',
+    image_url: '',
   });
 
-  const handleSubmit = () => {
-    if (!formData.restaurantName.trim() || !formData.mealName.trim()) {
+  const handleSubmit = async () => {
+    if (!formData.restaurant_name.trim() || !formData.meal_name.trim()) {
       Alert.alert('Missing Information', 'Please enter at least the restaurant name and meal name.');
       return;
     }
 
-    const mealData = {
-      restaurantName: formData.restaurantName.trim(),
-      mealName: formData.mealName.trim(),
-      description: formData.description.trim() || undefined,
-      rating: formData.rating,
-      date: new Date().toISOString(),
-      price: formData.price ? parseFloat(formData.price) : undefined,
-      cuisine: formData.cuisine.trim() || undefined,
-      location: formData.location.trim() || undefined,
-      imageUrl: formData.imageUrl.trim() || undefined,
-    };
+    try {
+      const mealData = {
+        restaurant_name: formData.restaurant_name.trim(),
+        meal_name: formData.meal_name.trim(),
+        description: formData.description.trim() || undefined,
+        rating: formData.rating,
+        price: formData.price ? parseFloat(formData.price) : undefined,
+        cuisine: formData.cuisine.trim() || undefined,
+        location: formData.location.trim() || undefined,
+        image_url: formData.image_url.trim() || undefined,
+      };
 
-    addMeal(mealData);
-    
-    // Reset form
-    setFormData({
-      restaurantName: '',
-      mealName: '',
-      description: '',
-      rating: 5,
-      price: '',
-      cuisine: '',
-      location: '',
-      imageUrl: '',
-    });
+      await addMeal(mealData);
+      
+      // Reset form
+      setFormData({
+        restaurant_name: '',
+        meal_name: '',
+        description: '',
+        rating: 5,
+        price: '',
+        cuisine: '',
+        location: '',
+        image_url: '',
+      });
 
-    Alert.alert('Success', 'Meal logged successfully!', [
-      {
-        text: 'Add Another',
-        style: 'default',
-      },
-      {
-        text: 'View Home',
-        onPress: () => router.push('/'),
-        style: 'default',
-      },
-    ]);
+      Alert.alert('Success', 'Meal logged successfully!', [
+        {
+          text: 'Add Another',
+          style: 'default',
+        },
+        {
+          text: 'View Home',
+          onPress: () => router.push('/'),
+          style: 'default',
+        },
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to log meal. Please try again.');
+    }
   };
 
   return (
@@ -89,8 +92,8 @@ function AddMealContent() {
             <Text style={styles.label}>Restaurant Name *</Text>
             <TextInput
               style={styles.input}
-              value={formData.restaurantName}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, restaurantName: text }))}
+              value={formData.restaurant_name}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, restaurant_name: text }))}
               placeholder="Enter restaurant name"
               placeholderTextColor="#9CA3AF"
             />
@@ -100,8 +103,8 @@ function AddMealContent() {
             <Text style={styles.label}>Meal Name *</Text>
             <TextInput
               style={styles.input}
-              value={formData.mealName}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, mealName: text }))}
+              value={formData.meal_name}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, meal_name: text }))}
               placeholder="What did you eat?"
               placeholderTextColor="#9CA3AF"
             />
@@ -173,8 +176,8 @@ function AddMealContent() {
             <Text style={styles.label}>Photo URL (Optional)</Text>
             <TextInput
               style={styles.input}
-              value={formData.imageUrl}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, imageUrl: text }))}
+              value={formData.image_url}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, image_url: text }))}
               placeholder="https://example.com/image.jpg"
               placeholderTextColor="#9CA3AF"
               keyboardType="url"
@@ -182,21 +185,19 @@ function AddMealContent() {
             />
           </View>
 
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <TouchableOpacity 
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]} 
+            onPress={handleSubmit}
+            disabled={loading}
+          >
             <Check size={20} color="#FFFFFF" />
-            <Text style={styles.submitButtonText}>Log Meal</Text>
+            <Text style={styles.submitButtonText}>
+              {loading ? 'Logging Meal...' : 'Log Meal'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-export default function AddMealScreen() {
-  return (
-    <MealProvider>
-      <AddMealContent />
-    </MealProvider>
   );
 }
 
@@ -305,6 +306,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
   },
   submitButtonText: {
     fontSize: 18,

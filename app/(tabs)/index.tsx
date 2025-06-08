@@ -7,13 +7,15 @@ import {
   TouchableOpacity 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, TrendingUp, Calendar, Star } from 'lucide-react-native';
+import { Plus, TrendingUp, Calendar, Star, LogOut } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { MealProvider, useMeals } from '@/context/MealContext';
+import { useMeals } from '@/context/MealContext';
+import { useAuth } from '@/hooks/useAuth';
 import { MealCard } from '@/components/MealCard';
 
-function HomeContent() {
-  const { meals } = useMeals();
+export default function HomeScreen() {
+  const { meals, loading, error } = useMeals();
+  const { signOut, user } = useAuth();
   
   const recentMeals = meals.slice(0, 3);
   const averageRating = meals.length > 0 
@@ -21,19 +23,45 @@ function HomeContent() {
     : 0;
   const totalMeals = meals.length;
   const thisWeekMeals = meals.filter(meal => {
-    const mealDate = new Date(meal.date);
+    const mealDate = new Date(meal.created_at);
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     return mealDate >= weekAgo;
   }).length;
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.replace('/(auth)/login');
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading your meals...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.welcomeText}>Welcome back!</Text>
-          <Text style={styles.title}>Meal Logger</Text>
+          <View>
+            <Text style={styles.welcomeText}>Welcome back!</Text>
+            <Text style={styles.title}>Meal Logger</Text>
+          </View>
+          <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+            <LogOut size={20} color="#6B7280" />
+          </TouchableOpacity>
         </View>
+
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
 
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
@@ -107,14 +135,6 @@ function HomeContent() {
   );
 }
 
-export default function HomeScreen() {
-  return (
-    <MealProvider>
-      <HomeContent />
-    </MealProvider>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -123,7 +143,20 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
+  },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     padding: 24,
     paddingBottom: 16,
   },
@@ -137,6 +170,26 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontFamily: 'Inter-Bold',
     color: '#111827',
+  },
+  signOutButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+  },
+  errorContainer: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 16,
+    margin: 24,
+    marginTop: 0,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#DC2626',
+    textAlign: 'center',
   },
   statsContainer: {
     flexDirection: 'row',

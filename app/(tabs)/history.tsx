@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Filter } from 'lucide-react-native';
-import { MealProvider, useMeals } from '@/context/MealContext';
+import { useMeals } from '@/context/MealContext';
 import { MealCard } from '@/components/MealCard';
 
-function HistoryContent() {
-  const { meals } = useMeals();
+export default function HistoryScreen() {
+  const { meals, loading, error } = useMeals();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'rating' | 'name'>('date');
 
@@ -21,8 +21,8 @@ function HistoryContent() {
     .filter(meal => {
       const query = searchQuery.toLowerCase();
       return (
-        meal.restaurantName.toLowerCase().includes(query) ||
-        meal.mealName.toLowerCase().includes(query) ||
+        meal.restaurant_name.toLowerCase().includes(query) ||
+        meal.meal_name.toLowerCase().includes(query) ||
         meal.description?.toLowerCase().includes(query) ||
         meal.cuisine?.toLowerCase().includes(query)
       );
@@ -30,11 +30,11 @@ function HistoryContent() {
     .sort((a, b) => {
       switch (sortBy) {
         case 'date':
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case 'rating':
           return b.rating - a.rating;
         case 'name':
-          return a.restaurantName.localeCompare(b.restaurantName);
+          return a.restaurant_name.localeCompare(b.restaurant_name);
         default:
           return 0;
       }
@@ -50,6 +50,16 @@ function HistoryContent() {
     sortBy === sortType && styles.sortButtonTextActive,
   ];
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading your meal history...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -58,6 +68,12 @@ function HistoryContent() {
           {meals.length} meal{meals.length !== 1 ? 's' : ''} logged
         </Text>
       </View>
+
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
 
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
@@ -142,18 +158,20 @@ function HistoryContent() {
   );
 }
 
-export default function HistoryScreen() {
-  return (
-    <MealProvider>
-      <HistoryContent />
-    </MealProvider>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
   },
   header: {
     padding: 24,
@@ -169,6 +187,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#6B7280',
+  },
+  errorContainer: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 16,
+    margin: 24,
+    marginTop: 0,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#DC2626',
+    textAlign: 'center',
   },
   searchContainer: {
     paddingHorizontal: 24,

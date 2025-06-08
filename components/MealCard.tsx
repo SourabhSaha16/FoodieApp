@@ -32,16 +32,16 @@ export function MealCard({ meal, onPress }: MealCardProps) {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.card}>
-        {meal.imageUrl && (
-          <Image source={{ uri: meal.imageUrl }} style={styles.image} />
+        {meal.image_url && (
+          <Image source={{ uri: meal.image_url }} style={styles.image} />
         )}
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.restaurantName}>{meal.restaurantName}</Text>
-            <Text style={styles.date}>{formatDate(meal.date)}</Text>
+            <Text style={styles.restaurantName}>{meal.restaurant_name}</Text>
+            <Text style={styles.date}>{formatDate(meal.created_at)}</Text>
           </View>
           
-          <Text style={styles.mealName}>{meal.mealName}</Text>
+          <Text style={styles.mealName}>{meal.meal_name}</Text>
           
           {meal.description && (
             <Text style={styles.description} numberOfLines={2}>

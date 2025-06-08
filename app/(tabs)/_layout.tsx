@@ -1,7 +1,27 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { Chrome as Home, Plus, History } from 'lucide-react-native';
+import { useAuth } from '@/hooks/useAuth';
+import { View, Text, StyleSheet } from 'react-native';
+
+function LoadingScreen() {
+  return (
+    <View style={styles.loadingContainer}>
+      <Text style={styles.loadingText}>Loading...</Text>
+    </View>
+  );
+}
 
 export default function TabLayout() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (!user) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   return (
     <Tabs
       screenOptions={{
@@ -52,3 +72,17 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+  },
+  loadingText: {
+    fontSize: 18,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
+  },
+});
