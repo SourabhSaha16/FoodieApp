@@ -8,6 +8,12 @@ config.transformer = {
   babelTransformerPath: require.resolve('metro-react-native-babel-transformer'),
 };
 
+// Add TypeScript extensions to resolver
+config.resolver = {
+  ...config.resolver,
+  sourceExts: ['ts', 'tsx', 'js', 'jsx', 'json', 'wasm'],
+};
+
 // Enable verbose logging for debugging
 config.reporter = {
   update: (event) => {
